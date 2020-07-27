@@ -16,6 +16,8 @@ import java.util.ArrayList;
 
 public class Server {
 
+
+
     private static ArrayList<String> users = new ArrayList<>();
     private static ArrayList<MessagingThread> clients = new ArrayList<>();
 
@@ -26,6 +28,7 @@ public class Server {
         while(true){
             Socket clientSocket = server.accept();
             System.out.println("Client is connected");
+
             MessagingThread thread = new MessagingThread(clientSocket);
             clients.add(thread);
             thread.start();
@@ -34,12 +37,12 @@ public class Server {
 
     static class MessagingThread extends Thread{
 
-        String user="s";
+        String user="";
         BufferedReader in;
         PrintWriter out;
 
-        //UserRepository userRepository;
-
+        @Autowired
+        private UserRepository userRepository;
 
         public MessagingThread(Socket clientSocket) throws IOException {
 
@@ -48,8 +51,8 @@ public class Server {
 
             user=in.readLine();
             users.add(user);
-//            User usr = new User(user,true);
-//            userRepository.save(usr);
+            User usr = new User(user,true);
+            userRepository.save(usr);
         }
 
         public static void sendToAll(String user, String message){
@@ -82,8 +85,8 @@ public class Server {
                     if(line.equals("exit")){
                         clients.remove(this);
                         users.remove(user);
-//                        userRepository.deactivateUserByName(user);
-//                        userRepository.deleteDeactivatedUsers();
+                        userRepository.deactivateUserByName(user);
+                        userRepository.deleteDeactivatedUsers();
                         break;
                     }else {
                         sendToAll(user,line);
