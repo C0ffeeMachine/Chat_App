@@ -1,30 +1,32 @@
 package com.example.ChatApp2;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.example.ChatApp2.User;
 
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 
 public class Server {
 
-
-
     private static ArrayList<String> users = new ArrayList<>();
     private static ArrayList<MessagingThread> clients = new ArrayList<>();
 
-    public static void main(String args[]) throws IOException {
+
+    public static void main(String args[]) throws Exception {
 
         ServerSocket server = new ServerSocket(6000,10);
         System.out.println("Waiting for Connections!!");
+        try{
+            DbOperations.createUsersTable("user");
+            DbOperations.createChatTable("chat_backup");
+        }catch (Exception e){
+
+        }
+
         while(true){
             Socket clientSocket = server.accept();
             System.out.println("Client is connected");
@@ -35,24 +37,20 @@ public class Server {
         }
     }
 
-    static class MessagingThread extends Thread{
+     static class MessagingThread extends Thread{
 
         String user="";
         BufferedReader in;
         PrintWriter out;
 
-        @Autowired
-        private UserRepository userRepository;
-
-        public MessagingThread(Socket clientSocket) throws IOException {
+        public MessagingThread(Socket clientSocket) throws Exception {
 
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(),true);
 
             user=in.readLine();
             users.add(user);
-            User usr = new User(user,true);
-            userRepository.save(usr);
+            DbOperations.addUserInDB(user);
         }
 
         public static void sendToAll(String user, String message){
@@ -76,6 +74,11 @@ public class Server {
             return user;
         }
 
+         public void saveInDB(String chatUser, String msg) throws SQLException {
+             String msg_id = chatUser + "_" + System.currentTimeMillis();
+             DbOperations.chatBackUp(user, msg_id, msg);
+         }
+
         @Override
         public void run(){
             String line;
@@ -85,11 +88,10 @@ public class Server {
                     if(line.equals("exit")){
                         clients.remove(this);
                         users.remove(user);
-                        userRepository.deactivateUserByName(user);
-                        userRepository.deleteDeactivatedUsers();
                         break;
                     }else {
                         sendToAll(user,line);
+                        saveInDB(user, line);
                     }
                 }
             } catch (Exception e) {
