@@ -1,6 +1,11 @@
 # Chat_App
 Just a simple Chat application in JAVA. More improvements following soon!
 
+Run:
+
+1: execute server.java file.
+2: execute different client.java files.
+
 TODO:
 
 1: Add Database functionality like User and chatBackup Table.
