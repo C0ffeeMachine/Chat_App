@@ -8,7 +8,7 @@ Run:
 
 TODO:
 
-1: Add Database functionality like User and chatBackup Table.
+1: Add Database functionality like User and chatBackup Table.(Done)
 2: UI changes.
 3: One to One Client chat functionality.
 4: Retrieving previous messages from Database.
